@@ -36,7 +36,7 @@ public class PlaceableObject : MonoBehaviour
             Mathf.Abs((vertices[0] - vertices[3]).y), 1);
     }
 
-    private Vector3 GetStartPosition()
+    public Vector3 GetStartPosition()
     {
         return transform.TransformPoint(_Vertices[0]);
     }
