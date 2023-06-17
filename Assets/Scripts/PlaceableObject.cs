@@ -55,7 +55,8 @@ public class PlaceableObject : MonoBehaviour
 
         Placed = true;
 
-        //invoke events of placement
+        //invoke events of placement 
+
     }
     /*Utilize vertices to check whether object has been placed there or not 
      * If object has been placed there, delete previous gameObject and add the current one. 
