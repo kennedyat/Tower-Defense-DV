@@ -46,6 +46,10 @@ public class TileController : MonoBehaviour
         {
             return;
         }
+        if(Input.GetKeyDown(KeyCode.Tab))
+        {
+            _placeableObject.Rotate();
+        }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {

@@ -47,6 +47,18 @@ public class PlaceableObject : MonoBehaviour
         CalculateSizeInCells();
     }
 
+    public void Rotate()
+    {
+        transform.Rotate(new Vector3(0, 90, 0));
+        Size = new Vector3Int(Size.y, Size.x, 1);
+
+        Vector3[] vertices = new Vector3[_Vertices.Length];
+        for (int i = 0; i<vertices.Length; i++ )
+        {
+            vertices[i] = _Vertices[(i+1)%_Vertices.Length];
+        }
+        _Vertices = vertices;
+    }
     public virtual void Place()
     {
         //Override?
