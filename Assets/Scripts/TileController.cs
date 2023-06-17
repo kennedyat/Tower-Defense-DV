@@ -16,7 +16,7 @@ public class TileController : MonoBehaviour
     public GameObject prefab1;
     public GameObject prefab2;
 
-    private PlaceableObject _placeableObejct;
+    private PlaceableObject _placeableObject;
 
     #region Unity methods
 
@@ -40,6 +40,28 @@ public class TileController : MonoBehaviour
         } else if (Input.GetKeyDown(KeyCode.D))
         {
             InitializeWithPath(prefab2);
+        }
+
+        if (!_placeableObject)
+        {
+            return;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            if (CanBePlaced(_placeableObject))
+            {
+                _placeableObject.Place();
+                Vector3Int start = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
+                TakeArea(start, _placeableObject.Size);
+            }
+            else
+            {
+                Destroy(_placeableObject.gameObject);
+            }
+        } else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Destroy(_placeableObject.gameObject);
         }
 
     }
@@ -70,6 +92,20 @@ public class TileController : MonoBehaviour
         return pos;
     }
 
+    private static TileBase[] GetTilesBlock(BoundsInt area, Tilemap tilemap)
+    {
+        TileBase[] blocks = new TileBase[area.size.x * area.size.y*area.size.z];
+        int counter = 0;
+
+        foreach (var v in area.allPositionsWithin)
+        {
+            Vector3Int pos = new Vector3Int(v.x,v.y, 0);
+            blocks[counter++] = tilemap.GetTile(pos);
+            counter++;
+        }
+        return blocks;
+    }
+
     #endregion
 
     #region Tile Placement
@@ -80,8 +116,32 @@ public class TileController : MonoBehaviour
         Vector3 position = SnapCoordinateToGrid(Vector3.zero);
 
         GameObject tilePath = Instantiate(prefab, position, Quaternion.identity);
-        _placeableObejct = tilePath.GetComponent<PlaceableObject>();
+        _placeableObject = tilePath.GetComponent<PlaceableObject>();
         tilePath.AddComponent<ObjectDrag>();
+    }
+
+    private bool CanBePlaced(PlaceableObject placeable)
+    {
+        BoundsInt area = new BoundsInt();
+        area.position = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
+        area.size = placeable.Size;
+
+        TileBase[] baseArray = GetTilesBlock(area, _mainTilemap);
+
+        foreach(var b in baseArray)
+        {
+            if (b == _whiteTile)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void TakeArea(Vector3Int start, Vector3Int size)
+    {
+        _mainTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
+                             start.x + size.x, start.y + size.y);
     }
 
     #endregion
