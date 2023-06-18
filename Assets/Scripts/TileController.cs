@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using static UnityEditor.PlayerSettings;
 
 public class TileController : MonoBehaviour
 {
@@ -11,6 +12,8 @@ public class TileController : MonoBehaviour
 
     private Grid _grid;
     [SerializeField] private Tilemap _mainTilemap;
+    [SerializeField] private Tilemap _topTilemap;
+    [SerializeField] private Tilemap _whiteTilemap;
     [SerializeField] private TileBase _whiteTile;
 
     public GameObject prefab1;
@@ -25,7 +28,7 @@ public class TileController : MonoBehaviour
         current = this;
         _grid = gridLayout.gameObject.GetComponent<Grid>();
     }
-    
+
     private void Update()
     {
 
@@ -34,20 +37,23 @@ public class TileController : MonoBehaviour
          * PC/Mac hac use middle mouse to scroll through (not all mice have middle bar though
          * Have arrows indicating that the tiles can rotate foer the player
          */
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKeyDown(KeyCode.Keypad1))
         {
+            Debug.Log("Create prefab 1");
             InitializeWithPath(prefab1);
-        } else if (Input.GetKeyDown(KeyCode.D))
+        } else if (Input.GetKeyDown(KeyCode.Keypad2))
         {
             InitializeWithPath(prefab2);
         }
 
         if (!_placeableObject)
         {
+            Debug.Log("Can't Find Placeable Object");
             return;
         }
-        if(Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.D))
         {
+            Debug.Log("Rotate");
             _placeableObject.Rotate();
         }
 
@@ -58,6 +64,7 @@ public class TileController : MonoBehaviour
                 _placeableObject.Place();
                 Vector3Int start = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
                 TakeArea(start, _placeableObject.Size);
+                PlaceObjectDown();
             }
             else
             {
@@ -78,7 +85,7 @@ public class TileController : MonoBehaviour
     public static Vector3 GetMouseWorldPosition()
     {
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if(Physics.Raycast(ray, out RaycastHit raycastHit))
+        if (Physics.Raycast(ray, out RaycastHit raycastHit))
         {
             return raycastHit.point;
         }
@@ -92,9 +99,10 @@ public class TileController : MonoBehaviour
     public Vector3 SnapCoordinateToGrid(Vector3 pos)
     {
         Vector3Int cellPos = gridLayout.WorldToCell(pos);
-        pos = _grid.GetCellCenterWorld(cellPos);
+        pos = _topTilemap.GetCellCenterWorld(cellPos);
         return pos;
     }
+  
 
     private static TileBase[] GetTilesBlock(BoundsInt area, Tilemap tilemap)
     {
@@ -104,7 +112,7 @@ public class TileController : MonoBehaviour
         foreach (var v in area.allPositionsWithin)
         {
             Vector3Int pos = new Vector3Int(v.x,v.y, 0);
-            blocks[counter++] = tilemap.GetTile(pos);
+            blocks[counter] = tilemap.GetTile(pos);
             counter++;
         }
         return blocks;
@@ -130,7 +138,7 @@ public class TileController : MonoBehaviour
         area.position = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
         area.size = placeable.Size;
 
-        TileBase[] baseArray = GetTilesBlock(area, _mainTilemap);
+        TileBase[] baseArray = GetTilesBlock(area, _whiteTilemap);
 
         foreach(var b in baseArray)
         {
@@ -144,8 +152,15 @@ public class TileController : MonoBehaviour
 
     public void TakeArea(Vector3Int start, Vector3Int size)
     {
-        _mainTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
+        _whiteTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
                              start.x + size.x, start.y + size.y);
+    }
+
+    public void PlaceObjectDown()
+    {
+        _mainTilemap.SetTile(gridLayout.WorldToCell(_placeableObject.gameObject.transform.position), null);
+        _placeableObject.gameObject.transform.position = _mainTilemap.GetCellCenterWorld(
+                            gridLayout.WorldToCell(_placeableObject.gameObject.transform.position));
     }
 
     #endregion
@@ -163,15 +178,15 @@ public class TileController : MonoBehaviour
 
 
     // Update is called once per frame
-   
 
-   /* private void OnMouseDown()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            var mousePos = Input.mousePosition;
-            var cellPos = _tilemap.WorldToCell(mousePos);
-            _tilemap.SetTile(cellPos, _tile);
-        }
-    }*/
+
+    /* private void OnMouseDown()
+     {
+         if (Input.GetMouseButtonDown(0))
+         {
+             var mousePos = Input.mousePosition;
+             var cellPos = _tilemap.WorldToCell(mousePos);
+             _tilemap.SetTile(cellPos, _tile);
+         }
+     }*/
 }

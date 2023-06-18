@@ -64,8 +64,9 @@ public class PlaceableObject : MonoBehaviour
         //Override?
         ObjectDrag drag = gameObject.GetComponent<ObjectDrag>();
         Destroy(drag);
-
         Placed = true;
+
+
 
         //invoke events of placement 
 
