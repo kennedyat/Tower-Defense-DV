@@ -15,9 +15,11 @@ public class TileController : MonoBehaviour
     [SerializeField] private Tilemap _topTilemap;
     [SerializeField] private Tilemap _whiteTilemap;
     [SerializeField] private TileBase _whiteTile;
+    [SerializeField] private TileBase _startTile;
 
     public GameObject prefab1;
     public GameObject prefab2;
+    GameObject plane;
 
     private PlaceableObject _placeableObject;
 
@@ -25,10 +27,14 @@ public class TileController : MonoBehaviour
 
     private void Awake()
     {
+       
         current = this;
         _grid = gridLayout.gameObject.GetComponent<Grid>();
     }
-
+    private void Start()
+    {
+        
+    }
     private void Update()
     {
 
@@ -48,7 +54,6 @@ public class TileController : MonoBehaviour
 
         if (!_placeableObject)
         {
-            Debug.Log("Can't Find Placeable Object");
             return;
         }
         if (Input.GetKeyDown(KeyCode.D))
@@ -64,6 +69,7 @@ public class TileController : MonoBehaviour
                 _placeableObject.Place();
                 Vector3Int start = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
                 TakeArea(start, _placeableObject.Size);
+                _placeableObject.DestroyTile();
                 PlaceObjectDown();
             }
             else
@@ -122,6 +128,10 @@ public class TileController : MonoBehaviour
 
     #region Tile Placement
 
+    public void InstantiateGround()
+    {
+
+    }
     //Initializing a object, creating said object and then assigning it the ability to drag
     public void InitializeWithPath(GameObject prefab)
     {
@@ -154,14 +164,20 @@ public class TileController : MonoBehaviour
     {
         _whiteTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
                              start.x + size.x, start.y + size.y);
+        
     }
+   
 
     public void PlaceObjectDown()
     {
-        _mainTilemap.SetTile(gridLayout.WorldToCell(_placeableObject.gameObject.transform.position), null);
+     
+       /*_mainTilemap.SetTile(gridLayout.WorldToCell(_placeableObject.gameObject.transform.position), null);*/
         _placeableObject.gameObject.transform.position = _mainTilemap.GetCellCenterWorld(
                             gridLayout.WorldToCell(_placeableObject.gameObject.transform.position));
     }
+
+   
+
 
     #endregion
 

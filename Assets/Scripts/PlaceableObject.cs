@@ -71,6 +71,15 @@ public class PlaceableObject : MonoBehaviour
         //invoke events of placement 
 
     }
+
+   
+    public void DestroyTile()
+    {
+        Ray ray = new Ray(transform.position, Vector3.down);
+        Physics.Raycast(ray, out RaycastHit hit, 50f);
+        Debug.Log(hit.collider.gameObject.name);
+        Destroy(hit.collider.gameObject);
+    }
     /*Utilize vertices to check whether object has been placed there or not 
      * If object has been placed there, delete previous gameObject and add the current one. 
      * Can help with rotation, rotate the vertices by swapping the vertices clockwise
