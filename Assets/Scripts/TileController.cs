@@ -19,9 +19,16 @@ public class TileController : MonoBehaviour
 
     public GameObject prefab1;
     public GameObject prefab2;
+    private GameObject currentPrefab;
+
+    private Quaternion currentPrefabRotation = Quaternion.identity;
     GameObject plane;
 
     private PlaceableObject _placeableObject;
+    private float nextPlacement = 0.05f;
+    static private float tilePlacementDelay = 0.0f;
+
+   
 
     #region Unity methods
 
@@ -43,13 +50,19 @@ public class TileController : MonoBehaviour
          * PC/Mac hac use middle mouse to scroll through (not all mice have middle bar though
          * Have arrows indicating that the tiles can rotate foer the player
          */
+        //Make function for instantiating the first prefab
         if (Input.GetKeyDown(KeyCode.Keypad1))
         {
-            Debug.Log("Create prefab 1");
             InitializeWithPath(prefab1);
+            Debug.Log("Create prefab 1");
+
+            currentPrefab = prefab1;
         } else if (Input.GetKeyDown(KeyCode.Keypad2))
         {
             InitializeWithPath(prefab2);
+            Debug.Log("Create prefab 2");
+            currentPrefab = prefab2;
+        
         }
 
         if (!_placeableObject)
@@ -60,29 +73,39 @@ public class TileController : MonoBehaviour
         {
             Debug.Log("Rotate");
             _placeableObject.Rotate();
+            currentPrefabRotation = _placeableObject.transform.rotation;
         }
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetMouseButton(0)) //Find better way to implement, make seamless (corners, continous tile placement w/o breaks
         {
-            if (CanBePlaced(_placeableObject))
+            if (Time.time >= tilePlacementDelay)
             {
-                _placeableObject.Place();
-                Vector3Int start = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
-                TakeArea(start, _placeableObject.Size);
-                _placeableObject.DestroyTile();
-                PlaceObjectDown();
+                if (CanBePlaced(_placeableObject))
+                {
+                    _placeableObject.Place();
+                    Vector3Int start = gridLayout.WorldToCell(_placeableObject.GetStartPosition());
+                    TakeArea(start, _placeableObject.Size);
+                    _placeableObject.DestroyTile();
+                    PlaceObjectDown();
+                    InitializeWithPath(currentPrefab);
+                }
+                else
+                {
+                    Destroy(_placeableObject.gameObject);
+                }
+                tilePlacementDelay = Time.time + nextPlacement;
+
             }
-            else
+            else if (Input.GetKeyDown(KeyCode.Escape))
             {
                 Destroy(_placeableObject.gameObject);
             }
-        } else if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            Destroy(_placeableObject.gameObject);
         }
+            
 
-    }
+     }
 
+  
     #endregion
 
     #region Utils
@@ -128,16 +151,12 @@ public class TileController : MonoBehaviour
 
     #region Tile Placement
 
-    public void InstantiateGround()
-    {
-
-    }
     //Initializing a object, creating said object and then assigning it the ability to drag
     public void InitializeWithPath(GameObject prefab)
     {
-        Vector3 position = SnapCoordinateToGrid(Vector3.zero);
+        Vector3 position = SnapCoordinateToGrid(GetMouseWorldPosition());// Starts at mous position
 
-        GameObject tilePath = Instantiate(prefab, position, Quaternion.identity);
+        GameObject tilePath = Instantiate(prefab, position, currentPrefabRotation);
         _placeableObject = tilePath.GetComponent<PlaceableObject>();
         tilePath.AddComponent<ObjectDrag>();
     }
@@ -162,8 +181,8 @@ public class TileController : MonoBehaviour
 
     public void TakeArea(Vector3Int start, Vector3Int size)
     {
-        _whiteTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
-                             start.x + size.x, start.y + size.y);
+       /* _whiteTilemap.BoxFill(start, _whiteTile, start.x, start.y, 
+                             start.x + size.x, start.y + size.y);*/
         
     }
    
